@@ -14,7 +14,7 @@ func NewHandler(storage Storage) handler {
 	return hndlr
 }
 
-func (h *handler) handleCommand(ctx context.Context, writer *Writer, command string, args []Value) Value {
+func (h *handler) handleCommand(ctx context.Context, writer Destination, command string, args []Value) Value {
 	switch strings.ToUpper(command) {
 	case "PING":
 		return h.ping(args)
@@ -22,6 +22,12 @@ func (h *handler) handleCommand(ctx context.Context, writer *Writer, command str
 		return h.set(args)
 	case "GET":
 		return h.get(args)
+	case "HSET":
+		return h.hset(args)
+	case "HGET":
+		return h.hget(args)
+	case "ALL":
+		return h.hgetall(args)
 	case "SUBSCRIBE":
 		return h.subscribe(ctx, writer, args)
 	case "PUBLISH":
@@ -123,7 +129,7 @@ func (s *handler) hgetall(args []Value) Value {
 	return Value{typ: "array", array: values}
 }
 
-func (s *handler) subscribe(ctx context.Context, writer *Writer, args []Value) Value {
+func (s *handler) subscribe(ctx context.Context, writer Destination, args []Value) Value {
 	if len(args) < 1 {
 		return Value{typ: "error", str: "ERR wrong number of arguments for 'subscribe' command"}
 	}
