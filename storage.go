@@ -97,6 +97,17 @@ func (i *InMemoryStorage) getChan(key string) (bool, chan Value) {
 	return isExist, channel
 }
 
+func (i *InMemoryStorage) closeNDeleteChan(key string) {
+	i.subscribeChansMu.Lock()
+	defer i.subscribeChansMu.Unlock()
+	channel, ok := i.subscribeChans[key]
+	if !ok {
+		return
+	}
+	close(channel)
+	delete(i.subscribeChans, key)
+}
+
 func (i *InMemoryStorage) Publish(channel string, value Value) int {
 	isExist, targetChannel := i.getChan(channel)
 	if !isExist {
@@ -110,10 +121,15 @@ func (i *InMemoryStorage) Subscribe(ctx context.Context, channelName string, wri
 	_, channel := i.getChan(channelName)
 	for {
 		select {
-		case msg := <-channel:
+		case msg, ok := <-channel:
+			if !ok {
+				return
+			}
 			writer.Write(msg)
+			return
 		case <-ctx.Done():
-			delete(i.subscribeChans, channelName)
+			i.closeNDeleteChan(channelName)
+			return
 		}
 	}
 }

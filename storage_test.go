@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"reflect"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestStorage(t *testing.T) {
@@ -39,6 +42,66 @@ func TestStorage(t *testing.T) {
 			t.Errorf("want %v got %v", want, got)
 		}
 	})
+	t.Run("subscribe", func(t *testing.T) {
+		storage := NewInMemoryStorage()
+		channel := "channel"
+		writer := &MockWriter{}
+		want := Value{
+			typ:  "bulk",
+			bulk: "message",
+		}
+		var wg sync.WaitGroup
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			storage.Subscribe(context.Background(), channel, writer)
+		}()
+
+		time.Sleep(10 * time.Millisecond)
+		storage.Publish(channel, want)
+		if !waitFor(&wg, 10*time.Millisecond) {
+			t.Errorf("timeout waiting for Subscribe goroutine to finish")
+			return
+		}
+
+		if writer.Value.bulk != want.bulk {
+			t.Errorf("got %+v, want %+v", writer.Value, want)
+		}
+	})
+	t.Run("publish even without subscriber", func(t *testing.T) {
+		storage := NewInMemoryStorage()
+		channel := "channel"
+		want := Value{
+			typ:  "bulk",
+			bulk: "message",
+		}
+		var wg sync.WaitGroup
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			storage.Publish(channel, want)
+		}()
+
+		if !waitFor(&wg, 10*time.Millisecond) {
+			t.Errorf("timeout waiting for Publish goroutine to finish")
+		}
+	})
+}
+
+func waitFor(wg *sync.WaitGroup, timeout time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		wg.Wait()
+	}()
+	select {
+	case <-c:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
 }
 
 func mustRun(t testing.TB, err error) {
