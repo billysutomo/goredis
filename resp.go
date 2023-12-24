@@ -181,6 +181,21 @@ func (r *Resp) readString() (Value, error) {
 	return v, nil
 }
 
+func (r *Resp) readError() (Value, error) {
+	v := Value{}
+	v.typ = "error"
+	line, _, err := r.readLine()
+	if err != nil {
+		return v, err
+	}
+	if err != nil {
+		return v, err
+	}
+
+	v.str = string(line)
+	return v, nil
+}
+
 func (r *Resp) Read() (Value, error) {
 	_type, err := r.reader.ReadByte()
 	if err != nil {
@@ -194,6 +209,8 @@ func (r *Resp) Read() (Value, error) {
 		return r.readBulk()
 	case STRING:
 		return r.readString()
+	case ERROR:
+		return r.readError()
 	default:
 		fmt.Printf("Unknown type: %v", string(_type))
 		return Value{}, nil

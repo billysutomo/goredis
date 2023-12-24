@@ -21,6 +21,19 @@ func TestResp(t *testing.T) {
 
 		assert.Equal(t, want, val)
 	})
+	t.Run("error", func(t *testing.T) {
+		errStr := "-Error message\r\n"
+		resp := NewResp(strings.NewReader(errStr))
+		val, err := resp.Read()
+		assert.NoError(t, err)
+
+		want := Value{
+			typ: "error",
+			str: "Error message",
+		}
+
+		assert.Equal(t, want, val)
+	})
 	t.Run("array string", func(t *testing.T) {
 		arrayString := "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
 		resp := NewResp(strings.NewReader(arrayString))
