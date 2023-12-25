@@ -1,3 +1,4 @@
+// RESP2 protocol spesification https://github.com/redis/redis-specifications/blob/master/protocol/RESP2.md
 package main
 
 import (

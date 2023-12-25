@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestResp(t *testing.T) {
+func TestRespString(t *testing.T) {
 	t.Run("string", func(t *testing.T) {
 		str := "+OK\r\n"
 		resp := NewResp(strings.NewReader(str))
@@ -21,6 +21,9 @@ func TestResp(t *testing.T) {
 
 		assert.Equal(t, want, val)
 	})
+}
+
+func TestRespError(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		errStr := "-Error message\r\n"
 		resp := NewResp(strings.NewReader(errStr))
@@ -34,6 +37,9 @@ func TestResp(t *testing.T) {
 
 		assert.Equal(t, want, val)
 	})
+}
+
+func TestRespInteger(t *testing.T) {
 	t.Run("integer 0 ", func(t *testing.T) {
 		intStr := ":0\r\n"
 		resp := NewResp(strings.NewReader(intStr))
@@ -60,6 +66,13 @@ func TestResp(t *testing.T) {
 
 		assert.Equal(t, want, val)
 	})
+}
+
+func TestBulkString(t *testing.T) {
+
+}
+
+func TestRespArray(t *testing.T) {
 	t.Run("array string", func(t *testing.T) {
 		arrayString := "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
 		resp := NewResp(strings.NewReader(arrayString))
