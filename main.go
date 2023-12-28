@@ -9,14 +9,14 @@ import (
 )
 
 func main() {
-	fmt.Println("Listening on port :6379")
-	l, err := net.Listen("tcp", ":6379")
+	fmt.Printf("Listening on port :%s\n", Config.Port)
+	l, err := net.Listen("tcp", fmt.Sprintf(":%s", Config.Port))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	aof, err := NewAof("database.aof")
+	aof, err := NewAof(fmt.Sprintf("%s.aof", Config.AOF))
 	if err != nil {
 		fmt.Println(err)
 		return
