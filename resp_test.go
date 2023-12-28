@@ -69,7 +69,18 @@ func TestRespInteger(t *testing.T) {
 }
 
 func TestBulkString(t *testing.T) {
+	buff := "$6\r\nfoobar\r\n"
+	want := Value{
+		typ:  "bulk",
+		bulk: "foobar",
+	}
+	resp := NewResp(strings.NewReader(string(buff)))
+	marshaled, err := resp.Read()
+	assert.NoError(t, err)
+	assert.Equal(t, want, marshaled)
 
+	secondBuff := marshaled.Marshal()
+	assert.Equal(t, buff, string(secondBuff))
 }
 
 func TestRespArray(t *testing.T) {
